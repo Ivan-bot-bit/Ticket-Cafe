@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Tickets - Exportación de Café S.A. de C.V.</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCAbortQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --coffee-dark-brown: #4A2C2A;
+            --coffee-medium-brown: #7B4B3B;
+            --coffee-light-brown: #A07F5E;
+            --coffee-beige: #D4C1A9;
+            --coffee-green: #6B8E23;
+            --coffee-cream: #F5EFE6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--coffee-cream);
+            color: var(--coffee-dark-brown);
+        }
+
+        .navbar {
+            background-color: var(--coffee-dark-brown);
+        }
+
+        .navbar-brand, .nav-link {
+            color: var(--coffee-beige) !important;
+        }
+
+        .navbar-toggler-icon {
+            filter: invert(1);
+        }
+
+        .btn-primary, .btn-success {
+            background-color: var(--coffee-medium-brown);
+            border-color: var(--coffee-medium-brown);
+            color: var(--coffee-cream);
+        }
+
+        .btn-primary:hover, .btn-success:hover {
+            background-color: var(--coffee-dark-brown);
+            border-color: var(--coffee-dark-brown);
+        }
+
+        .btn-outline-secondary {
+            color: var(--coffee-medium-brown);
+            border-color: var(--coffee-medium-brown);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--coffee-medium-brown);
+            color: var(--coffee-cream);
+        }
+
+        .card {
+            background-color: var(--coffee-cream);
+            border-color: var(--coffee-light-brown);
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .card-header {
+            background-color: var(--coffee-light-brown);
+            color: var(--coffee-dark-brown);
+            font-weight: bold;
+        }
+
+        .form-control, .form-select {
+            border-color: var(--coffee-light-brown);
+            background-color: var(--coffee-cream);
+            color: var(--coffee-dark-brown);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--coffee-green);
+            box-shadow: 0 0 0 0.25rem rgba(107, 142, 35, 0.25);
+        }
+
+        .modal-content {
+            background-color: var(--coffee-cream);
+            color: var(--coffee-dark-brown);
+        }
+
+        .modal-header {
+            background-color: var(--coffee-light-brown);
+            color: var(--coffee-dark-brown);
+            border-bottom-color: var(--coffee-light-brown);
+        }
+
+        .badge-priority-high { background-color: #dc3545; color: white; } /* Red */
+        .badge-priority-medium { background-color: #ffc107; color: #343a40; } /* Yellow */
+        .badge-priority-low { background-color: #28a745; color: white; } /* Green */
+        .badge-status-abierto { background-color: #17a2b8; color: white; } /* Blue */
+        .badge-status-cerrado { background-color: #6c757d; color: white; } /* Gray */
+
+        .container-fluid {
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        #app-content {
+            display: none; /* Hidden by default until authenticated */
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-coffee"></i> Exportación de Café S.A. de C.V.
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item" id="nav-item-logout" style="display: none;">
+                        <a class="nav-link" href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div id="auth-section" class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card p-4">
+                    <h2 class="card-title text-center mb-4" id="auth-title">Iniciar Sesión</h2>
+
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label for="login-email" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="login-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="login-password" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="login-password" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</button>
+                        </div>
+                        <p class="text-center mt-3">
+                            ¿No tienes cuenta? <a href="#" id="show-register">Regístrate</a>
+                        </p>
+                        <p class="text-center">
+                            <a href="#" id="show-reset-password">¿Olvidaste tu contraseña?</a>
+                        </p>
+                        <div id="login-error-message" class="text-danger text-center mt-2" style="display: none;"></div>
+                    </form>
+
+                    <form id="register-form" style="display: none;">
+                        <div class="mb-3">
+                            <label for="register-email" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="register-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="register-password" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="register-password" required>
+                            <div class="form-text">Mínimo 6 caracteres.</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success"><i class="fas fa-user-plus"></i> Registrar</button>
+                        </div>
+                        <p class="text-center mt-3">
+                            ¿Ya tienes cuenta? <a href="#" id="show-login">Iniciar Sesión</a>
+                        </p>
+                        <div id="register-error-message" class="text-danger text-center mt-2" style="display: none;"></div>
+                    </form>
+
+                    <form id="reset-password-form" style="display: none;">
+                        <div class="mb-3">
+                            <label for="reset-email" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="reset-email" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-outline-secondary"><i class="fas fa-redo-alt"></i> Restablecer Contraseña</button>
+                        </div>
+                        <p class="text-center mt-3">
+                            <a href="#" id="back-to-login">Volver a Iniciar Sesión</a>
+                        </p>
+                        <div id="reset-success-message" class="text-success text-center mt-2" style="display: none;"></div>
+                        <div id="reset-error-message" class="text-danger text-center mt-2" style="display: none;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="app-content" class="row">
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Tickets de Pedido</h2>
+                    <div>
+                        <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createTicketModal">
+                            <i class="fas fa-plus-circle"></i> Nuevo Ticket
+                        </button>
+                        <button type="button" class="btn btn-success" id="export-tickets-btn">
+                            <i class="fas fa-file-excel"></i> Exportar Datos
+                        </button>
+                    </div>
+                </div>
+
+                <div id="tickets-list" class="row">
+                    <p class="text-center text-muted mt-5">Cargando tickets...</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar"></i> Estadísticas de Tickets por Prioridad
+                    </div>
+                    <div class="card-body">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createTicketModal" tabindex="-1" aria-labelledby="createTicketModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createTicketModalLabel">Crear Nuevo Ticket de Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="ticket-form">
+                        <div class="mb-3">
+                            <label for="ticket-title" class="form-label">Título del Pedido</label>
+                            <input type="text" class="form-control" id="ticket-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ticket-description" class="form-label">Descripción del Pedido</label>
+                            <textarea class="form-control" id="ticket-description" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="ticket-priority" class="form-label">Prioridad</label>
+                                <select class="form-select" id="ticket-priority" required>
+                                    <option value="Baja">Baja</option>
+                                    <option value="Media" selected>Media</option>
+                                    <option value="Alta">Alta</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ticket-status" class="form-label">Estado</label>
+                                <select class="form-select" id="ticket-status" required>
+                                    <option value="Abierto" selected>Abierto</option>
+                                    <option value="Cerrado">Cerrado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ticket-client-name" class="form-label">Nombre del Cliente</label>
+                            <input type="text" class="form-control" id="ticket-client-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ticket-kilograms" class="form-label">Kilogramos de Café</label>
+                            <input type="number" class="form-control" id="ticket-kilograms" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ticket-product-type" class="form-label">Tipo de Producto</label>
+                            <select class="form-select" id="ticket-product-type" required>
+                                <option value="Arábica">Arábica</option>
+                                <option value="Robusta">Robusta</option>
+                                <option value="Mezcla">Mezcla</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ticket-country" class="form-label">País de Envío</label>
+                            <input type="text" class="form-control" id="ticket-country" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Crear Ticket</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+
+        // === Firebase Configuration ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkYzKWJqrGZ4_hbgQ3onEq7poJnEcCVK4",
+            authDomain: "proyecto-b1.firebaseapp.com",
+            projectId: "proyecto-b1",
+            storageBucket: "proyecto-b1.firebasestorage.app",
+            messagingSenderId: "464513422446",
+            appId: "1:464513422446:web:3c092ef981e9dac680027f"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const ticketsCollection = collection(db, 'tickets');
+        const usersCollection = collection(db, 'users'); // For future user profile management if needed
+
+        let ticketsChart; // To store the Chart.js instance
+
+        // === UI Element References ===
+        const authSection = document.getElementById('auth-section');
+        const appContent = document.getElementById('app-content');
+        const authTitle = document.getElementById('auth-title');
+
+        // Login elements
+        const loginForm = document.getElementById('login-form');
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginErrorMessage = document.getElementById('login-error-message');
+
+        // Register elements
+        const registerForm = document.getElementById('register-form');
+        const registerEmailInput = document.getElementById('register-email');
+        const registerPasswordInput = document.getElementById('register-password');
+        const registerErrorMessage = document.getElementById('register-error-message');
+
+        // Reset Password elements
+        const resetPasswordForm = document.getElementById('reset-password-form');
+        const resetEmailInput = document.getElementById('reset-email');
+        const resetSuccessMessage = document.getElementById('reset-success-message');
+        const resetErrorMessage = document.getElementById('reset-error-message');
+
+        // Navigation and Logout
+        const navItemLogout = document.getElementById('nav-item-logout');
+        const logoutBtn = document.getElementById('logout-btn');
+        const showRegisterLink = document.getElementById('show-register');
+        const showLoginLink = document.getElementById('show-login');
+        const showResetPasswordLink = document.getElementById('show-reset-password');
+        const backToLoginLink = document.getElementById('back-to-login');
+
+        // Ticket elements
+        const ticketsList = document.getElementById('tickets-list');
+        const createTicketModal = new bootstrap.Modal(document.getElementById('createTicketModal'));
+        const ticketForm = document.getElementById('ticket-form');
+        const exportTicketsBtn = document.getElementById('export-tickets-btn');
+        const priorityChartCtx = document.getElementById('priorityChart').getContext('2d');
+
+        // === Authentication Logic ===
+
+        // Function to switch between auth forms
+        function showAuthForm(formId) {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'none';
+            resetPasswordForm.style.display = 'none';
+            loginErrorMessage.style.display = 'none';
+            registerErrorMessage.style.display = 'none';
+            resetSuccessMessage.style.display = 'none';
+            resetErrorMessage.style.display = 'none';
+
+            document.getElementById(formId).style.display = 'block';
+            if (formId === 'login-form') authTitle.textContent = 'Iniciar Sesión';
+            else if (formId === 'register-form') authTitle.textContent = 'Registrar Nuevo Empleado';
+            else if (formId === 'reset-password-form') authTitle.textContent = 'Restablecer Contraseña';
+        }
+
+        showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm('register-form'); });
+        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm('login-form'); });
+        showResetPasswordLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm('reset-password-form'); });
+        backToLoginLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm('login-form'); });
+
+
+        // Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+            loginErrorMessage.style.display = 'none';
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // Auth state observer will handle UI update
+            } catch (error) {
+                console.error("Login Error:", error.code, error.message);
+                loginErrorMessage.textContent = "Error al iniciar sesión: " + (error.code === 'auth/user-not-found' ? 'Usuario no encontrado.' : error.code === 'auth/wrong-password' ? 'Contraseña incorrecta.' : error.message);
+                loginErrorMessage.style.display = 'block';
+            }
+        });
+
+        // Register
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = registerEmailInput.value;
+            const password = registerPasswordInput.value;
+            registerErrorMessage.style.display = 'none';
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await addDoc(usersCollection, { // Using addDoc for users collection
+                    uid: userCredential.user.uid, // Store UID
+                    email: email,
+                    createdAt: serverTimestamp()
+                });
+                alert('¡Registro exitoso! Por favor, inicia sesión.');
+                showAuthForm('login-form');
+            } catch (error) {
+                console.error("Register Error:", error.code, error.message);
+                registerErrorMessage.textContent = "Error al registrar: " + (error.code === 'auth/email-already-in-use' ? 'El correo ya está en uso.' : error.code === 'auth/weak-password' ? 'La contraseña es demasiado débil (mínimo 6 caracteres).' : error.message);
+                registerErrorMessage.style.display = 'block';
+            }
+        });
+
+        // Reset Password
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = resetEmailInput.value;
+            resetSuccessMessage.style.display = 'none';
+            resetErrorMessage.style.display = 'none';
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                resetSuccessMessage.textContent = 'Se ha enviado un correo de recuperación a ' + email + '. Por favor, revisa tu bandeja de entrada.';
+                resetSuccessMessage.style.display = 'block';
+            } catch (error) {
+                console.error("Reset Password Error:", error.code, error.message);
+                resetErrorMessage.textContent = "Error al restablecer contraseña: " + (error.code === 'auth/user-not-found' ? 'Usuario no encontrado.' : error.message);
+                resetErrorMessage.style.display = 'block';
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await signOut(auth);
+                // Auth state observer will handle UI update
+            } catch (error) {
+                console.error("Logout Error:", error.message);
+                alert("Error al cerrar sesión.");
+            }
+        });
+
+        // Auth State Observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                authSection.style.display = 'none';
+                appContent.style.display = 'block';
+                navItemLogout.style.display = 'block';
+                loadTickets(); // Load tickets when user logs in
+            } else {
+                // User is signed out
+                authSection.style.display = 'flex'; // Use flex to center
+                appContent.style.display = 'none';
+                navItemLogout.style.display = 'none';
+                ticketsList.innerHTML = '<p class="text-center text-muted mt-5">Inicia sesión para ver los tickets.</p>';
+                if (ticketsChart) ticketsChart.destroy(); // Destroy chart when logged out
+                showAuthForm('login-form'); // Default to login form
+            }
+        });
+
+
+        // === Ticket Management Logic ===
+
+        let nextTicketFolio = 1; // Used for automatic folio generation
+
+        async function generateNextFolio() {
+            try {
+                // Create a query to get the last ticket by creation date
+                const q = query(ticketsCollection, orderBy('createdAt', 'desc'), limit(1));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const lastTicket = querySnapshot.docs[0].data();
+                    const lastFolio = lastTicket.folio;
+                    if (lastFolio) {
+                        const folioNumber = parseInt(lastFolio.split('-')[1]);
+                        nextTicketFolio = folioNumber + 1;
+                    }
+                }
+                return `COFFEE-${String(nextTicketFolio).padStart(3, '0')}`;
+            } catch (error) {
+                console.error("Error generating folio:", error);
+                // Fallback in case of error, just incrementing locally
+                return `COFFEE-${String(nextTicketFolio++).padStart(3, '0')}`;
+            }
+        }
+
+        ticketForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                alert('Debes iniciar sesión para crear tickets.');
+                return;
+            }
+
+            const newFolio = await generateNextFolio();
+
+            const ticketData = {
+                folio: newFolio,
+                title: document.getElementById('ticket-title').value,
+                description: document.getElementById('ticket-description').value,
+                priority: document.getElementById('ticket-priority').value,
+                status: document.getElementById('ticket-status').value,
+                clientName: document.getElementById('ticket-client-name').value,
+                kilograms: parseFloat(document.getElementById('ticket-kilograms').value),
+                productType: document.getElementById('ticket-product-type').value,
+                country: document.getElementById('ticket-country').value,
+                createdBy: currentUser.email,
+                createdByUid: currentUser.uid, // Store UID for security rules
+                createdAt: serverTimestamp() // Use serverTimestamp from modular SDK
+            };
+
+            try {
+                await addDoc(ticketsCollection, ticketData); // Use addDoc from modular SDK
+                alert('Ticket creado exitosamente!');
+                ticketForm.reset();
+                createTicketModal.hide();
+                loadTickets(); // Reload tickets to display the new one
+                nextTicketFolio++; // Increment for next ticket
+            } catch (error) {
+                console.error("Error creating ticket:", error);
+                alert('Error al crear el ticket: ' + error.message);
+            }
+        });
+
+        async function loadTickets() {
+            ticketsList.innerHTML = '<p class="text-center text-muted mt-5">Cargando tickets...</p>';
+            try {
+                const q = query(ticketsCollection, orderBy('createdAt', 'desc')); // Use query and orderBy
+                const snapshot = await getDocs(q); // Use getDocs
+                const tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                displayTickets(tickets);
+                updatePriorityChart(tickets);
+            } catch (error) {
+                console.error("Error loading tickets:", error);
+                ticketsList.innerHTML = '<p class="text-danger text-center mt-5">Error al cargar los tickets.</p>';
+            }
+        }
+
+        function displayTickets(tickets) {
+            ticketsList.innerHTML = ''; // Clear previous tickets
+            if (tickets.length === 0) {
+                ticketsList.innerHTML = '<p class="text-center text-muted mt-5">No hay tickets disponibles.</p>';
+                return;
+            }
+
+            tickets.forEach(ticket => {
+                const priorityClass = `badge-priority-${ticket.priority.toLowerCase()}`;
+                const statusClass = `badge-status-${ticket.status.toLowerCase()}`;
+
+                const ticketCard = `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="badge ${priorityClass}">${ticket.priority}</span>
+                                <span class="badge ${statusClass}">${ticket.status}</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">${ticket.title} <small class="text-muted">(${ticket.folio})</small></h5>
+                                <p class="card-text">${ticket.description}</p>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item"><strong>Cliente:</strong> ${ticket.clientName}</li>
+                                    <li class="list-group-item"><strong>Kg:</strong> ${ticket.kilograms}</li>
+                                    <li class="list-group-item"><strong>Producto:</strong> ${ticket.productType}</li>
+                                    <li class="list-group-item"><strong>País:</strong> ${ticket.country}</li>
+                                    <li class="list-group-item text-muted"><small>Creado por: ${ticket.createdBy}</small></li>
+                                    <li class="list-group-item text-muted"><small>Fecha: ${ticket.createdAt ? new Date(ticket.createdAt.toDate()).toLocaleString() : 'N/A'}</small></li>
+                                </ul>
+                            </div>
+                            <div class="card-footer text-end">
+                                <button class="btn btn-sm btn-danger delete-ticket-btn" data-id="${ticket.id}"><i class="fas fa-trash"></i> Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                ticketsList.innerHTML += ticketCard;
+            });
+
+            document.querySelectorAll('.delete-ticket-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const ticketId = e.target.dataset.id;
+                    // IMPORTANT: Add a check here if the current user is authorized to delete this ticket
+                    // E.g., if (auth.currentUser && auth.currentUser.uid === ticket.createdByUid)
+                    if (confirm('¿Estás seguro de que quieres eliminar este ticket?')) {
+                        deleteTicket(ticketId);
+                    }
+                });
+            });
+        }
+
+        async function deleteTicket(id) {
+            try {
+                // Use doc and deleteDoc from modular SDK
+                await deleteDoc(doc(db, 'tickets', id));
+                alert('Ticket eliminado exitosamente!');
+                loadTickets(); // Reload tickets after deletion
+            } catch (error) {
+                console.error("Error deleting ticket:", error);
+                alert('Error al eliminar el ticket: ' + error.message);
+            }
+        }
+
+        // === Data Export Logic ===
+        exportTicketsBtn.addEventListener('click', async () => {
+            try {
+                const q = query(ticketsCollection, orderBy('createdAt', 'asc')); // Use query and orderBy
+                const snapshot = await getDocs(q); // Use getDocs
+                const tickets = snapshot.docs.map(doc => doc.data());
+
+                if (tickets.length === 0) {
+                    alert('No hay tickets para exportar.');
+                    return;
+                }
+
+                let csvContent = "data:text/csv;charset=utf-8,";
+                const headers = [
+                    "Folio", "Titulo", "Descripcion", "Prioridad", "Estado",
+                    "Nombre del Cliente", "Kilogramos de Cafe", "Tipo de Producto",
+                    "Pais de Envio", "Creado Por", "Fecha de Creacion"
+                ];
+                csvContent += headers.join(",") + "\r\n";
+
+                tickets.forEach(ticket => {
+                    const row = [
+                        `"${ticket.folio}"`,
+                        `"${ticket.title.replace(/"/g, '""')}"`,
+                        `"${ticket.description.replace(/"/g, '""')}"`,
+                        `"${ticket.priority}"`,
+                        `"${ticket.status}"`,
+                        `"${ticket.clientName.replace(/"/g, '""')}"`,
+                        ticket.kilograms,
+                        `"${ticket.productType}"`,
+                        `"${ticket.country.replace(/"/g, '""')}"`,
+                        `"${ticket.createdBy}"`,
+                        `"${ticket.createdAt ? new Date(ticket.createdAt.toDate()).toLocaleString() : 'N/A'}"`
+                    ];
+                    csvContent += row.join(",") + "\r\n";
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "tickets_exportacion_cafe.csv");
+                document.body.appendChild(link); // Required for Firefox
+                link.click();
+                document.body.removeChild(link);
+                alert('Datos exportados exitosamente a tickets_exportacion_cafe.csv!');
+
+            } catch (error) {
+                console.error("Error exporting tickets:", error);
+                alert('Error al exportar los tickets: ' + error.message);
+            }
+        });
+
+
+        // === Charting Logic (Chart.js) ===
+        function updatePriorityChart(tickets) {
+            const priorityCounts = { "Alta": 0, "Media": 0, "Baja": 0 };
+            tickets.forEach(ticket => {
+                if (priorityCounts.hasOwnProperty(ticket.priority)) {
+                    priorityCounts[ticket.priority]++;
+                }
+            });
+
+            const data = {
+                labels: ['Alta', 'Media', 'Baja'],
+                datasets: [{
+                    label: 'Cantidad de Tickets',
+                    data: [priorityCounts['Alta'], priorityCounts['Media'], priorityCounts['Baja']],
+                    backgroundColor: [
+                        'rgba(220, 53, 69, 0.7)', // Red for High
+                        'rgba(255, 193, 7, 0.7)', // Yellow for Medium
+                        'rgba(40, 167, 69, 0.7)'  // Green for Low
+                    ],
+                    borderColor: [
+                        'rgba(220, 53, 69, 1)',
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(40, 167, 69, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0 // Ensure whole numbers for ticket counts
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // No need for legend as labels are clear
+                    },
+                    title: {
+                        display: false
+                    }
+                }
+            };
+
+            if (ticketsChart) {
+                ticketsChart.data = data;
+                ticketsChart.update();
+            } else {
+                ticketsChart = new Chart(priorityChartCtx, {
+                    type: 'bar',
+                    data: data,
+                    options: options
+                });
+            }
+        }
+    </script>
+</body>
+</html>
